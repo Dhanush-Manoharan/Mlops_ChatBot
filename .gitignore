@@ -1,0 +1,132 @@
+# Data stored in GCS - not in git
+data_processing/chroma_data/
+data_processing/cleaned_data/
+data_processing/raw_data/
+data_processing/*.zip
+data/
+backend/chroma_data/
+*.sqlite3
+*.csv
+*.parquet
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment variables (IMPORTANT - don't share API keys!)
+.env
+.env.local
+*.key
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data files (tracked with DVC instead!)
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.parquet
+data/raw/*.xlsx
+data/processed/*.csv
+data/processed/*.json
+data/processed/*.parquet
+data/embeddings/*.parquet
+
+# Keep DVC metadata
+!data/.dvc
+!data/**/*.dvc
+
+# Logs
+*.log
+logs/**/*.log
+airflow/logs/**
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Large files
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# Airflow
+airflow.db
+airflow.cfg
+webserver_config.py
+airflow-webserver.pid
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.cache/
+/data
+/chroma_backup
+docker-compose.yaml
+
+# ============================================
+# TESTING & COVERAGE (ADDED FOR RAMI'S REQUIREMENTS)
+# ============================================
+# Pytest cache
+.pytest_cache/
+.pytest/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# ============================================
+# GREAT EXPECTATIONS (ADDED FOR RAMI'S REQUIREMENTS)
+# ============================================
+great_expectations/uncommitted/
+great_expectations/.ge_store_backend_id
+great_expectations/uncommitted/
+great_expectations/uncommitted/validations/
+great_expectations/uncommitted/data_docs/
+
+# ============================================
+# DOCUMENTATION ARTIFACTS
+# ============================================
+# Keep placeholder files but ignore generated reports
+docs/*.html
+docs/coverage_report/
+
+# ============================================
+# LARGE BACKUP FILES
+# ============================================
+chroma_db_backup.zip
+*.backup

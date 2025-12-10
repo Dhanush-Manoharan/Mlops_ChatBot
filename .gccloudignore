@@ -1,0 +1,43 @@
+.git
+.github
+.dvc
+.gitignore
+
+# Keep original folders (not needed for deployment)
+milestone2/
+milestone2_submission/
+milestone3_authentication/
+ui_flask/
+data/
+data_processing/
+docs/
+logs/
+scripts/
+tests/
+great_expectations/
+airflow/
+dags/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Environment
+.env
+.env.local
+
+# Documentation
+*.md
+
+# DVC
+*.dvc
+
+# IDE
+.vscode/
+.idea/
+
+# Docker local
+chroma_data/

@@ -1,0 +1,37 @@
+# FastAPI & Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# AI & ML
+openai==1.35.0
+chromadb==0.4.24
+sentence-transformers==2.2.2
+torch==2.1.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# Data Processing
+numpy==1.26.2
+pandas==2.1.4
+scipy==1.11.4
+
+# Monitoring & Logging
+google-cloud-logging==3.8.0
+google-cloud-monitoring==2.16.0
+
+# Experiment Tracking
+mlflow==2.9.0
+
+# Notifications
+requests==2.31.0
+
+# Testing
+pytest==7.4.3
+
+# Utilities
+python-multipart==0.0.6
