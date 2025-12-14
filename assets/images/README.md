@@ -1,1 +1,0 @@
-# PROPBOT ASSETS
