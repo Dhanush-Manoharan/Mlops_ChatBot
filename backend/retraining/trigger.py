@@ -97,22 +97,19 @@ class RetrainingTrigger:
     def trigger_retraining_pipeline(self, reason: str) -> bool:
         """
         Trigger the retraining pipeline
-        
-        In production, this would:
-        1. Pull latest data from database
-        2. Retrain the model
-        3. Validate new model
-        4. Deploy if better than current
-        
-        For this demo, we'll simulate the process
+
+        Executes the automated retraining script which:
+        1. Pulls latest data from database
+        2. Retrains the model
+        3. Validates new model
+        4. Deploys if better than current
         """
         logger.info(f"🚀 Initiating retraining pipeline...")
         logger.info(f"📋 Reason: {reason}")
-        
+
         try:
-            # In production, this would trigger your actual retraining workflow
-            # For now, we'll create a retraining job record
-            
+            import subprocess
+
             retraining_job = {
                 'job_id': f"retrain_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 'triggered_at': datetime.now().isoformat(),
@@ -126,17 +123,37 @@ class RetrainingTrigger:
                     'deployment'
                 ]
             }
-            
+
             # Save retraining job
             self._save_retraining_job(retraining_job)
-            
+
             logger.info(f"✅ Retraining job created: {retraining_job['job_id']}")
-            
+
+            # Execute retraining script
+            script_path = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'retrain_model.py')
+
+            if os.path.exists(script_path):
+                logger.info(f"🔄 Executing retraining script: {script_path}")
+
+                # Run retraining script in background
+                process = subprocess.Popen(
+                    ['python', script_path],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+
+                logger.info(f"✅ Retraining pipeline started in background (PID: {process.pid})")
+                logger.info(f"   Monitor logs for progress")
+            else:
+                logger.warning(f"⚠️ Retraining script not found at: {script_path}")
+                logger.info(f"   Job recorded but not executed")
+
             # Update last retraining timestamp
             self.last_retraining = datetime.now()
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to trigger retraining: {e}")
             return False

@@ -1,0 +1,3 @@
+@echo off
+echo Starting PropBot Frontend (Streamlit)...
+streamlit run app.py --server.port 8501

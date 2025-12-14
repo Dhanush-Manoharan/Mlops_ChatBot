@@ -21,20 +21,23 @@ class PropBotRAG:
     
     def __init__(self):
         logger.info("🔧 Initializing Enhanced RAG Pipeline...")
-        
+
+        # Initialize conversation memory FIRST - ensure it's always set
+        self.conversation_memory = {}
+
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        
-        # Use embedded ChromaDB with persistent storage
-        chroma_path = os.getenv('CHROMA_PATH', 'C:/project_mlops/data_processing/chroma_data')
+
+        # Use embedded ChromaDB with persistent storage - FIXED PATH
+        chroma_path = os.getenv('CHROMA_PATH', '/app/chroma_data')
         logger.info(f"📡 Using embedded ChromaDB at {chroma_path}")
-        
+
         try:
             self.chroma_client = PersistentClient(path=chroma_path)
-            
+
             collections = self.chroma_client.list_collections()
             self.collection_names = [c.name for c in collections]
-            
+
             # Try to get properties collection - try multiple names with fallback
             collection_found = False
             collection_attempts = [
@@ -43,7 +46,7 @@ class PropBotRAG:
                 'zillow_working_boston_listings_20251127_174724_flat',
                 'zillow_working_boston_all_max_20251127_181854'
             ]
-            
+
             for coll_name in collection_attempts:
                 try:
                     self.collection = self.chroma_client.get_collection(coll_name)
@@ -52,7 +55,7 @@ class PropBotRAG:
                     break
                 except:
                     continue
-            
+
             # If still not found, try first collection with 'propert' in name
             if not collection_found:
                 prop_collections = [c for c in self.collection_names if 'propert' in c.lower()]
@@ -61,18 +64,16 @@ class PropBotRAG:
                     logger.info(f"✅ Using '{prop_collections[0]}' collection")
                     collection_found = True
                 else:
-                    logger.warning("⚠️ No properties collection found!")
+                    logger.warning("⚠ No properties collection found!")
                     self.collection = None
-            
+
             logger.info(f"✅ Found {len(self.collection_names)} collections")
             logger.info(f"📚 Available: {', '.join(self.collection_names[:10])}")
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to initialize ChromaDB: {e}")
             self.collection_names = []
             self.collection = None
-        
-        self.conversation_memory = {}
     
     def parse_property_document(self, doc_text: str) -> dict:
         """Parse: '104 PUTNAM ST, Boston, MA 02128. THREE-FAM DWELLING. 6. 3. 719,400'"""
@@ -100,44 +101,46 @@ class PropBotRAG:
         return {'address': None, 'type': None, 'beds': None, 'baths': None, 'price': None}
     
     def get_relevant_collections(self, query: str) -> List[str]:
-        """Select collections based on query intent"""
+        """Select collections based on query intent - Updated for enhanced multi-dataset"""
         query_lower = query.lower()
         collections = []
-        
-        # Crime queries
-        if any(w in query_lower for w in ['crime', 'safety', 'safe', 'dangerous']):
-            collections.extend(['crime', 'boston_crime'])
-        
+
+        # Crime/Safety queries
+        if any(w in query_lower for w in ['crime', 'safety', 'safe', 'dangerous', 'incident', 'security']):
+            collections.extend(['crime_collection', 'crime', 'boston_crime'])
+
         # Neighborhood queries
-        if any(w in query_lower for w in ['neighborhood', 'area', 'community', 'best place']):
+        if any(w in query_lower for w in ['neighborhood', 'area', 'community', 'best place', 'district']):
             collections.append('neighborhoods')
-        
-        # School queries
-        if any(w in query_lower for w in ['school', 'education']):
-            collections.append('schools')
-        
-        # Amenity queries  
-        if any(w in query_lower for w in ['restaurant', 'shop', 'park', 'gym', 'cafe']):
-            collections.extend(['amenities', 'yelp_businesses_20251024_185237', 'parks', 'synthetic_amenities_20251128_061253'])
-        
-        # Transit queries
-        if any(w in query_lower for w in ['transit', 'subway', 'train', 'bus', 'mbta']):
-            collections.append('transit')
-        
-        # Property queries - use ALL property collections for best coverage
-        if any(w in query_lower for w in ['property', 'home', 'house', 'condo', 'rent', 'buy', 'bedroom', 'price']):
+
+        # School/Education queries
+        if any(w in query_lower for w in ['school', 'education', 'elementary', 'high school', 'middle school']):
+            collections.extend(['schools_collection', 'schools'])
+
+        # Amenity/Business queries
+        if any(w in query_lower for w in ['restaurant', 'shop', 'park', 'gym', 'cafe', 'coffee', 'grocery', 'business', 'amenity', 'yelp']):
+            collections.extend(['amenities_collection', 'amenities', 'yelp_businesses_20251024_185237', 'parks', 'synthetic_amenities_20251128_061253'])
+
+        # Transit/Transportation queries
+        if any(w in query_lower for w in ['transit', 'subway', 'train', 'bus', 'mbta', 'station', 'red line', 'green line', 'orange line', 'blue line', 'commute']):
+            collections.extend(['transit_collection', 'transit'])
+
+        # Property queries - prioritize new collection, fall back to old ones
+        if any(w in query_lower for w in ['property', 'home', 'house', 'condo', 'rent', 'buy', 'bedroom', 'price', 'bath', 'sqft', 'value', 'listing']):
             collections.extend([
+                'properties_collection',
                 'properties',
                 'boston_properties',
                 'zillow_working_boston_all_max_20251127_181854',
                 'zillow_working_boston_listings_20251127_174724_flat',
-                'zillow_working_boston_zipcollector_20251127_191843'
+                'zillow_working_boston_zipcollector_20251127_191843',
+                'zillow_properties_with_prices'
             ])
-        
+
         # Default to property collections if nothing matches
         if not collections:
-            collections = ['properties', 'boston_properties']
-        
+            collections = ['properties_collection', 'properties', 'boston_properties']
+
         # Remove duplicates, keep only existing collections
         return [c for c in dict.fromkeys(collections) if c in self.collection_names][:6]
     
@@ -180,7 +183,7 @@ class PropBotRAG:
                             'distance': results['distances'][0][idx] if results['distances'] else 0
                         })
             except Exception as e:
-                logger.warning(f"⚠️  Failed {coll_name}: {e}")
+                logger.warning(f"⚠  Failed {coll_name}: {e}")
         
         all_results.sort(key=lambda x: x['distance'])
         return all_results[:k]

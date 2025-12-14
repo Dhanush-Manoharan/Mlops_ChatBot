@@ -20,6 +20,7 @@ EXPOSE 8080
 # Environment variables
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
+ENV BACKEND_API_URL=https://propbot-backend-1049519207552.us-central1.run.app
 
 # Run Streamlit
 CMD streamlit run app.py \
@@ -28,24 +29,3 @@ CMD streamlit run app.py \
     --server.headless=true \
     --server.enableCORS=false \
     --server.enableXsrfProtection=false
-```
-
----
-
-## 📝 Create Frontend .dockerignore:
-
-**Create:** `C:\project_mlops\frontend\.dockerignore`
-```
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.env
-.env.local
-*.log
-.git
-.gitignore
-.vscode
-.streamlit/secrets.toml

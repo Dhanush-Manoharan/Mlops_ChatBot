@@ -1,5 +1,5 @@
 // ✅ BACKEND URL
-const API = window.BACKEND_API_URL || 'http://127.0.0.1:8080';
+const API = window.BACKEND_API_URL || 'http://localhost:8080';
 
 let map, markers = [], selectedIdx = -1, properties = [], neighborhoods = [];
 let copilotInitialized = false;
@@ -449,17 +449,22 @@ async function showSavedProps(){
 
 async function loadFeatured(mode = 'buy'){
     currentMode = mode;
-    
+
     try{
+        console.log('🔍 Loading featured properties from:', `${API}/recommendations/by-features`);
         const data = await safeFetchJson(`${API}/recommendations/by-features`,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({mode: mode})
         }, '/recommendations/by-features (featured)');
-        
+
+        console.log('✅ Got data:', data);
+        console.log('✅ Recommendations count:', data.recommendations?.length || 0);
+
         const carousel = document.getElementById('featuredProperties');
-        
+
         if(data.recommendations && data.recommendations.length > 0) {
+            console.log('✅ Rendering', data.recommendations.length, 'properties');
             carousel.innerHTML = data.recommendations.map((p, i) => `
                 <div class="property-card">
                     <div class="property-image" style="background-image:url('${p.image}')"></div>
@@ -476,12 +481,14 @@ async function loadFeatured(mode = 'buy'){
                 </div>
             `).join('');
         } else {
+            console.log('❌ No recommendations in response');
             carousel.innerHTML = '<div style="color:white;text-align:center;padding:40px;">No properties found</div>';
         }
-        
+
         startAutoScroll();
-        
+
     }catch(e){
+        console.error('❌ Error loading featured:', e);
         document.getElementById('featuredProperties').innerHTML =
             `<div style="color:white;text-align:center;padding:40px;">Error loading properties: ${e.message}</div>`;
     }
@@ -645,8 +652,8 @@ function renderListings(){
     }
     list.innerHTML = properties.map((p,i)=>`
         <div class="listing-card" onclick="selectProp(${i})">
-            <div class="listing-title">${p.name}</div>
-            <div class="listing-meta">${p.description.substring(0,85)}...</div>
+            <div class="listing-title">${p.address || p.name}</div>
+            <div class="listing-meta">${p.price ? '$' + p.price.toLocaleString() : ''} ${p.beds ? '| ' + p.beds + ' beds' : ''} ${p.baths ? '| ' + p.baths + ' baths' : ''}</div>
         </div>
     `).join('');
     document.getElementById('listingsCount').innerText = properties.length + ' matches';
@@ -755,6 +762,10 @@ async function sendMsg(){
                                 description: r.description,
                                 score: r.match_score,
                                 address: r.address,
+                                price: r.price,
+                                beds: r.beds || r.bedrooms,
+                                baths: r.baths || r.bathrooms,
+                                sqft: r.sqft,
                                 lat: coords.lat,
                                 lng: coords.lng
                             };

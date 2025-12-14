@@ -16,3 +16,6 @@ mlruns/
 registry/
 results/
 *.md
+.cache/
+chroma_data_backup*/
+other_data/

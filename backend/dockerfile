@@ -1,34 +1,35 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies and lightweight gsutil
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
+    postgresql-client \
     curl \
-    && curl -sSL https://sdk.cloud.google.com | bash \
     && rm -rf /var/lib/apt/lists/*
 
-# Add gcloud to PATH
-ENV PATH="/root/google-cloud-sdk/bin:${PATH}"
-
-# Copy requirements
+# Copy and install requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download model
+RUN python -c "from sentence_transformers import SentenceTransformer; \
+    print('📦 Downloading model...'); \
+    SentenceTransformer('all-MiniLM-L6-v2'); \
+    print('✅ Model cached!')"
+
+# COPY CHROMADB DATA (2.8 GB)
+COPY chroma_data /app/chroma_data
 
 # Copy application code
 COPY . .
 
-# Copy startup script
-COPY startup.sh /app/startup.sh
-RUN chmod +x /app/startup.sh
-
-# Expose port
 EXPOSE 8080
 
-# Environment variables
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
+ENV CHROMA_PATH=/app/chroma_data
+ENV TRANSFORMERS_CACHE=/app/.cache
 
-# Run startup script then main app
-CMD ["/bin/bash", "-c", "/app/startup.sh && uvicorn main:app --host 0.0.0.0 --port $PORT"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

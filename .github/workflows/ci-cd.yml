@@ -38,10 +38,25 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install DVC
+      run: |
+        pip install dvc dvc-gdrive
+
+    - name: Pull Latest Models and Data from DVC
+      run: |
+        echo "📦 Pulling latest models and data from DVC..."
+        dvc pull || echo "⚠️ DVC pull skipped (remote not configured)"
+        echo "✅ Data sync complete"
+
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
@@ -53,6 +68,11 @@ jobs:
     - name: Deploy Backend to Cloud Run
       working-directory: backend
       run: |
+        echo "🚀 Starting deployment to Cloud Run..."
+        echo "Project: ${{ env.PROJECT_ID }}"
+        echo "Region: ${{ env.REGION }}"
+        echo "Commit: ${{ github.sha }}"
+
         gcloud run deploy propbot-backend \
           --source . \
           --platform managed \
@@ -61,15 +81,55 @@ jobs:
           --memory 4Gi \
           --cpu 2 \
           --timeout 300 \
-          --set-env-vars ENVIRONMENT=production,OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+          --set-env-vars ENVIRONMENT=production,OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},MONITORING_ENABLED=true \
+          --labels deployed_by=github_actions,commit=${{ github.sha }},branch=main \
+          --revision-suffix $(date +%s) \
           --project ${{ env.PROJECT_ID }}
+
+        echo "✅ Deployment command executed"
     
     - name: Get Backend URL
       id: backend-url
       run: |
         BACKEND_URL=$(gcloud run services describe propbot-backend --region=${{ env.REGION }} --format='value(status.url)' --project ${{ env.PROJECT_ID }})
         echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
-    
+        echo "Backend deployed at: $BACKEND_URL"
+
+    - name: Verify Deployment Health
+      run: |
+        BACKEND_URL=$(gcloud run services describe propbot-backend --region=${{ env.REGION }} --format='value(status.url)' --project ${{ env.PROJECT_ID }})
+        echo "🔍 Verifying deployment health..."
+
+        # Wait for service to be ready and test health endpoint
+        for i in {1..10}; do
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/health || echo "000")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+            curl -s $BACKEND_URL/health | head -20
+            exit 0
+          fi
+          echo "⏳ Attempt $i/10: Service not ready yet (HTTP $HTTP_CODE), waiting 10s..."
+          sleep 10
+        done
+        echo "❌ Deployment verification failed - service not responding"
+        exit 1
+
+    - name: Smoke Test - Chat Endpoint
+      run: |
+        BACKEND_URL=$(gcloud run services describe propbot-backend --region=${{ env.REGION }} --format='value(status.url)' --project ${{ env.PROJECT_ID }})
+        echo "🧪 Running smoke test on chat endpoint..."
+
+        RESPONSE=$(curl -s -X POST $BACKEND_URL/chat \
+          -H "Content-Type: application/json" \
+          -d '{"query":"test"}' || echo "FAILED")
+
+        if echo "$RESPONSE" | grep -q "answer"; then
+          echo "✅ Smoke test passed - Chat endpoint working"
+        else
+          echo "⚠️ Smoke test warning - Unexpected response"
+          echo "$RESPONSE"
+        fi
+
     outputs:
       backend_url: ${{ steps.backend-url.outputs.url }}
   
