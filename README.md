@@ -12,6 +12,10 @@ IE 7374 - Northeastern University
 - Nishchay Gowda
 - Shivakumar Hassan Lokesh
 
+## 🎬 Demo
+
+![PropBot Demo](assets/images/propbot-demo.gif)
+
 # PropBot - Boston Real Estate Chatbot with MLOps Pipeline
 
 PropBot is an intelligent real estate chatbot powered by GPT-4o-mini and RAG (Retrieval Augmented Generation) technology, designed to help users find properties in Boston. This project implements a complete MLOps pipeline with automated monitoring, drift detection, and model retraining.
