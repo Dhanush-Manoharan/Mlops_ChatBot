@@ -14,7 +14,7 @@ IE 7374 - Northeastern University
 
 ## 🎬 Demo
 
-![PropBot Demo](assets/images/propbot-demo.gif)
+![PropBot Demo](https://github.com/Dhanush-Manoharan/Mlops_ChatBot/blob/69d99c09f2a3f8bfc09a24611fbc49df4d0eb0eb/assets/images/propbot%20(1).gif)
 
 # PropBot - Boston Real Estate Chatbot with MLOps Pipeline
 
