@@ -14,7 +14,7 @@ IE 7374 - Northeastern University
 
 ## 🎬 Demo
 <p align="center">
-  <img src="https://github.com/Dhanush-Manoharan/Mlops_ChatBot/blob/69d99c09f2a3f8bfc09a24611fbc49df4d0eb0eb/assets/images/propbot%20(1).gif" alt="PropBot Demo" width="800">
+  <img src="https://github.com/Dhanush-Manoharan/Mlops_ChatBot/blob/1569a3b66273dd9f89786099e6c877bca5ff415a/assets/images/propbot%20(1).mp4" alt="PropBot Demo" width="800">
 </p>
 <p align="center">
   <i>PropBot in action at Google Cambridge MLOps Innovation Expo</i>
