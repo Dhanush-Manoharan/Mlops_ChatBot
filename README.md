@@ -5,12 +5,12 @@ IE 7374 - Northeastern University
 **Milestone 1: Data Pipeline Submission**
 
 ## Team Members
-- Dhanush Manoharan
-- Pranav Rangbulla
-- Gayatri Nair
-- Priyanka Raj Rajendran
-- Nishchay Gowda
-- Shivakumar Hassan Lokesh
+- Dhanush Manoharan - worked on Data Collection and ETL
+- Pranav Rangbulla - worked on RAG & LLM
+- Gayatri Nair - worked on RAG & LLM
+- Priyanka Raj Rajendran - Worked on Data collection and ETL
+- Nishchay Gowda - Worked on LLM fine-tuning and UI
+- Shivakumar Hassan Lokesh - Worked on LLM fune tuning and UI
 
 ## 🎬 Demo
 <p align="center">
